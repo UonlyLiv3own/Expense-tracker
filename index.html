@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Expense Tracker - Quản lý thu chi cá nhân</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- Thêm Chart.js để vẽ biểu đồ -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h1>Quản lý tài chính cá nhân</h1>
+        <p class="subtitle">Theo dõi thu nhập, chi tiêu và số dư của bạn</p>
+
+        <!-- Yêu cầu 1 & 6: 3 Tab Thu nhập - Chi tiêu - Số dư nằm trên 1 hàng -->
+        <div class="tabs">
+            <button class="tab-btn active" data-tab="all">Thống Kê Tổng Quan</button>
+            <button class="tab-btn" data-tab="income">+ Thêm Thu Nhập</button>
+            <button class="tab-btn" data-tab="expense">- Thêm Chi Tiêu</button>
+            <button class="tab-btn" data-tab="balance">📊 Biểu Đồ Số Dư</button>
+        </div>
+
+        <!-- Yêu cầu 1: Khối Thống kê 3 thẻ Thu nhập - Chi tiêu - Số dư nằm trên 1 hàng -->
+        <div class="grid">
+            <div class="summary income-card">
+                <p>Tổng thu nhập</p>
+                <h2 id="totalIncome">0 ₫</h2>
+            </div>
+            <div class="summary expense-card">
+                <p>Tổng chi tiêu</p>
+                <h2 id="totalExpense">0 ₫</h2>
+            </div>
+            <div class="summary balance-card">
+                <p>Số dư còn lại</p>
+                <h2 id="totalBalance">0 ₫</h2>
+            </div>
+        </div>
+
+        <!-- Form nhập liệu (Chỉ hiển thị khi bấm vào tab Thu nhập hoặc Chi tiêu) -->
+        <form id="transactionForm" class="hidden">
+            <h3 id="formTitle">Giao dịch mới</h3>
+            <input type="hidden" id="transactionType" value="expense">
+
+            <div class="form-group">
+                <label for="transactionName">Thông tin giao dịch / Nội dung thu nhập</label>
+                <input type="text" id="transactionName" placeholder="Ví dụ: Lương, Ăn sáng, Cà phê..." required>
+            </div>
+
+            <div class="form-group">
+                <label for="transactionAmount">Số tiền (VNĐ)</label>
+                <input type="number" id="transactionAmount" placeholder="Ví dụ: 50000" min="1" step="1" required>
+            </div>
+
+            <div class="form-group">
+                <label for="transactionCategory">Danh mục / Phân loại</label>
+                <select id="transactionCategory" required>
+                    <!-- Danh mục sẽ được thay đổi động bằng JavaScript tùy theo Thu hay Chi -->
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="transactionDate">Thời gian</label>
+                <input type="date" id="transactionDate" required>
+            </div>
+
+            <button type="submit" id="submitBtn">Lưu giao dịch</button>
+        </form>
+
+        <!-- Yêu cầu 7: Khu vực Biểu đồ So sánh (Hiển thị ở Tab Số dư) -->
+        <div id="chartsSection" class="hidden">
+            <h3>Biểu đồ so sánh thu nhập & chi tiêu</h3>
+            <div class="chart-wrapper">
+                <canvas id="monthlyChart"></canvas>
+            </div>
+
+            <h3 style="margin-top: 30px;">Nâng Cao: Biểu đồ chi tiêu theo danh mục (Tháng này)</h3>
+            <div class="chart-wrapper">
+                <canvas id="categoryChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Khối hiển thị Lịch dạng Notion và Danh sách giao dịch -->
+        <div id="historySection">
+            <!-- Header điều khiển tháng trên Lịch -->
+            <div class="calendar-header">
+                <div class="calendar-title">
+                    <button type="button" id="prevMonthBtn" class="nav-btn">&lt;</button>
+                    <h3 id="calendarMonthTitle" style="margin: 0;">Tháng 10/2026</h3>
+                    <button type="button" id="nextMonthBtn" class="nav-btn">&gt;</button>
+                </div>
+                <button type="button" id="showAllBtn" class="show-all-btn">Xem tất cả tháng này</button>
+            </div>
+
+            <!-- Bảng Lịch phong cách Notion -->
+            <div id="notionCalendar" class="notion-calendar">
+                <!-- Lịch sẽ được dựng tự động bằng Javascript -->
+            </div>
+
+            <!-- Tiêu đề và Danh sách giao dịch chi tiết theo ngày chọn -->
+            <div class="selected-day-header">
+                <h4 id="selectedDayTitle">Danh sách giao dịch</h4>
+                <p id="expenseCountText" class="count-text">Bạn đang có 0 khoản chi.</p>
+            </div>
+
+            <ul id="expenseList"></ul>
+            <p id="emptyMessage">Chưa có giao dịch nào trong ngày này.</p>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
