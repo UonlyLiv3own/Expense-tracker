@@ -7,6 +7,32 @@
     <link rel="stylesheet" href="style.css">
     <!-- Thêm Chart.js để vẽ biểu đồ -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Thêm Firebase App & Firestore SDK -->
+    <script type="module">
+        // Import the functions you need from the SDKs you need
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/13.1.0/firebase-app.js";
+        import { getAnalytics } from "https://www.gstatic.com/firebasejs/13.1.0/firebase-analytics.js";
+        // TODO: Add SDKs for Firebase products that you want to use Firebase JS SDK v7.20.0
+        // https://firebase.google.com/docs/web/setup#available-libraries
+
+        // DÁN ĐOẠN CONFIG FIREBASE CỦA BẠN VÀO ĐÂY
+        const firebaseConfig = {
+            apiKey: "AIzaSyBDfZ_BLe3R0fqPFJzszetuDoQHM3MNg2I",
+            authDomain: "finance-personal-bf790.firebaseapp.com",
+            projectId: "finance-personal-bf790",
+            storageBucket: "finance-personal-bf790.firebasestorage.app",
+            messagingSenderId: "157807270228",
+            appId: "1:157807270228:web:82387b25eaf27ebdd910c1",
+            measurementId: "G-RZ16YXVSEN"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        // Gắn các hàm cần thiết vào cửa sổ global để script.js dùng chung
+        window.db = db;
+        window.dbModules = { collection, addDoc, getDocs, deleteDoc, doc, onSnapshot };
+    </script>
 </head>
 <body>
     <div class="container">

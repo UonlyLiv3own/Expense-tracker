@@ -1,5 +1,5 @@
-// Khởi tạo biến lưu trữ dữ liệu từ localStorage (Yêu cầu 2)
-let transactions = JSON.parse(localStorage.getItem("transactions")) || [];
+// Xóa bỏ hoàn toàn cơ chế lưu trữ cục bộ localStorage, chuyển sang mảng trống để chờ dữ liệu từ Cloud
+let transactions = [];
 
 // Lấy các element DOM
 const totalIncomeEl = document.getElementById("totalIncome");
@@ -44,6 +44,25 @@ transactionDate.valueAsDate = new Date();
 // Định dạng tiền tệ VNĐ
 function formatMoney(amount) {
   return amount.toLocaleString("vi-VN") + " ₫";
+}
+
+function initFirebaseSync() {
+    if (!window.db) {
+        setTimeout(initFirebaseSync, 100); 
+        return;
+    }
+    const { collection, onSnapshot } = window.dbModules;
+    onSnapshot(collection(window.db, "transactions"), (snapshot) => {
+        transactions = [];
+        snapshot.forEach((doc) => {
+            transactions.push({
+                firebaseId: doc.id, 
+                ...doc.data()
+            });
+        });
+        transactions.sort((a, b) => b.id - a.id);
+        renderApp();
+    });
 }
 
 // Chống mã độc XSS
@@ -205,7 +224,8 @@ function renderApp() {
                     </span>
                     <span class="expense-meta">📁 ${escapeHTML(item.category)} | 📅 ${item.date}</span>
                 </div>
-                <button type="button" class="delete-btn" data-id="${item.id}">Xóa</button>
+                /* Chuyển thuộc tính data-id từ item.id để định danh đúng bản ghi trên cơ sở dữ liệu đám mây */
+                <button type="button" class="delete-btn" data-id="${item.firebaseId}">Xóa</button> 
             </li>
         `;
     })
@@ -262,7 +282,7 @@ tabBtns.forEach((btn) => {
 });
 
 // Xử lý thêm giao dịch mới
-transactionForm.addEventListener("submit", function (e) {
+transactionForm.addEventListener("submit", async function (e) {
   e.preventDefault();
 
   const name = transactionName.value.trim();
@@ -276,33 +296,43 @@ transactionForm.addEventListener("submit", function (e) {
     return;
   }
 
-  transactions.unshift({
-    id: Date.now(),
-    name,
-    amount,
-    category,
-    type,
-    date,
-  });
+  try {
+      const { collection, addDoc } = window.dbModules;
+      await addDoc(collection(window.db, "transactions"), {
+          id: Date.now(),
+          name,
+          amount,
+          category,
+          type,
+          date
+      });
 
-  saveToLocalStorage();
-  renderApp();
-  transactionForm.reset();
-  transactionDate.valueAsDate = new Date();
-  alert("Thêm thành công!");
+      currentViewDate = new Date(date);
+      selectedDateStr = date;
+
+      transactionForm.reset();
+      transactionDate.valueAsDate = new Date();
+      alert("Đã lưu và đồng bộ thành công lên đám mây!");
+  } catch (error) {
+      console.error("Lỗi khi thêm: ", error);
+      alert("Xảy ra lỗi khi đồng bộ dữ liệu lên đám mây.");
+  }
 });
 
 // Yêu cầu 4: Dùng confirm() trước khi xóa
-expenseList.addEventListener("click", function (e) {
-  if (!e.target.classList.contains("delete-btn")) return;
+expenseList.addEventListener("click", async function (e) {
+    if (!e.target.classList.contains("delete-btn")) return;
 
-  const isConfirmed = confirm("Bạn có chắc chắn muốn xóa giao dịch này không?");
-  if (isConfirmed) {
-    const id = Number(e.target.dataset.id);
-    transactions = transactions.filter((item) => item.id !== id);
-    saveToLocalStorage();
-    renderApp();
-  }
+    if (confirm("Bạn có chắc chắn muốn xóa vĩnh viễn giao dịch này không?")) {
+        const firebaseId = e.target.dataset.id;
+        try {
+            const { doc, deleteDoc } = window.dbModules;
+            await deleteDoc(doc(window.db, "transactions", firebaseId));
+        } catch (error) {
+            console.error("Lỗi khi xóa: ", error);
+            alert("Xảy ra lỗi khi xóa !!! vui lòng thử lại.");
+        }
+    }
 });
 
 // Yêu cầu 7: Biểu đồ so sánh Thu nhập & Chi tiêu tháng trước vs tháng này & Bài tập nâng cao
@@ -416,4 +446,4 @@ function renderCharts() {
 }
 
 // Khởi chạy ứng dụng lần đầu
-renderApp();
+initFirebaseSync();
