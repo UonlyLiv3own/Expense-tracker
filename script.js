@@ -224,7 +224,7 @@ function renderApp() {
                     </span>
                     <span class="expense-meta">📁 ${escapeHTML(item.category)} | 📅 ${item.date}</span>
                 </div>
-                /* Chuyển thuộc tính data-id từ item.id để định danh đúng bản ghi trên cơ sở dữ liệu đám mây */
+                
                 <button type="button" class="delete-btn" data-id="${item.firebaseId}">Xóa</button> 
             </li>
         `;
